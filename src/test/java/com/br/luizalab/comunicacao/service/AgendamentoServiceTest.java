@@ -25,7 +25,7 @@ public class AgendamentoServiceTest {
     }
 
     @Test
-    void deveCriarAgendamento() {
+    void deveCriarAgendamentoAgendamento() {
         var request = new AgendamentoRequest(
                 LocalDateTime.now().plusHours(1),
                 "teste@email.com",
@@ -42,7 +42,7 @@ public class AgendamentoServiceTest {
 
         when(repository.save(Mockito.any())).thenReturn(entidadeSalva);
 
-        var response = service.criar(request);
+        var response = service.criarAgendamento(request);
 
         assertNotNull(response);
         assertEquals(1L, response.id());
@@ -51,32 +51,54 @@ public class AgendamentoServiceTest {
     }
 
     @Test
-    void deveBuscarAgendamentoPorId() {
+    void deveBuscarAgendamentoAgendamentoPorId() {
         var agendamento = new AgendamentoComunicacao();
         agendamento.setId(10L);
         agendamento.setDestinatario("alguem@dominio.com");
 
         when(repository.findById(10L)).thenReturn(Optional.of(agendamento));
 
-        var result = service.buscar(10L);
+        var result = service.buscarAgendamento(10L);
 
         assertEquals(10L, result.id());
         assertEquals("alguem@dominio.com", result.destinatario());
     }
 
     @Test
-    void deveDeletarAgendamento() {
+    void deveDeletarAgendamentoAgendamento() {
         when(repository.existsById(5L)).thenReturn(true);
 
-        service.deletar(5L);
+        service.deletarAgendamento(5L);
 
         verify(repository).deleteById(5L);
     }
 
     @Test
-    void deveLancarExcecaoAoDeletarIdInexistente() {
+    void deveLancarExcecaoAoDeletarAgendamentoIdInexistente() {
         when(repository.existsById(99L)).thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> service.deletar(99L));
+        assertThrows(RuntimeException.class, () -> service.deletarAgendamento(99L));
+    }
+
+    @Test
+    void deveLancarExcecaoAoCriarAgendamentoComDataPassada() {
+        var request = new AgendamentoRequest(
+                LocalDateTime.now().minusDays(1), // Data no passado
+                "destinatario@exemplo.com",
+                "Mensagem de teste",
+                TipoComunicacao.EMAIL
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> service.criarAgendamento(request));
+    }
+
+    @Test
+    void deveLancarExcecaoAoBuscarAgendamentoComIdNulo() {
+        assertThrows(IllegalArgumentException.class, () -> service.buscarAgendamento(null));
+    }
+
+    @Test
+    void deveLancarExcecaoAoDeletarAgendamentoComIdNulo() {
+        assertThrows(IllegalArgumentException.class, () -> service.deletarAgendamento(null));
     }
 }
